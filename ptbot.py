@@ -4,8 +4,15 @@ import sched
 import time
 import fnmatch
 from commands import CommandHandler
+import chardet
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def decode_irc(data):
+    if isinstance(data, bytes):
+        result = chardet.detect(data)
+        return data.decode(result['encoding'], errors='replace')
+    return data
 
 class OpBot(irc.bot.SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667, owner_hostmasks=None):
@@ -27,11 +34,11 @@ class OpBot(irc.bot.SingleServerIRCBot):
 
     def on_privmsg(self, c, e):
         if e.arguments[0].startswith('.'):
-            self.handle_command(e, e.arguments[0])
+            self.handle_command(e, decode_irc(e.arguments[0]))
 
     def on_pubmsg(self, c, e):
         if e.arguments[0].startswith('.'):
-            self.handle_command(e, e.arguments[0])
+            self.handle_command(e, decode_irc(e.arguments[0]))
 
     def handle_command(self, e, cmd):
         self.command_handler.handle_command(e, cmd)
@@ -49,6 +56,11 @@ if __name__ == "__main__":
     server = "94.125.182.253"
     channel = "#tahioN"
     nickname = "testbot"
+
+    # Ustawienie dekodera dla buforów IRC
+    irc.client.ServerConnection.buffer_class.encoding = 'utf-8'
+    irc.client.ServerConnection.buffer_class.errors = 'replace'
+    irc.client.ServerConnection.buffer_class.decode = staticmethod(decode_irc)
 
     logging.info(f"Connecting to {server} as {nickname}")
     bot = OpBot(channel, nickname, server)
