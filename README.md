@@ -28,7 +28,7 @@ Copy
 pip install irc chardet
 Copy
 3. Skonfiguruj bota, edytując plik `config.json`:
-
+```json
 {
     "server": {
         "host": "irc.twoj-serwer.com",
@@ -42,7 +42,7 @@ Copy
     "masters_file": "masters.json",
     "warns_file": "warns.json"
 }
-
+```
 
 Uruchomienie
 Aby uruchomić bota, wykonaj:
