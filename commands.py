@@ -214,7 +214,6 @@ class CommandHandler:
                 ".unblock - Usuń tryb tylko na zaproszenie i moderowany z kanału (właściciele i masterzy)\n"
                 ".silence - Ustaw kanał w tryb moderowany (właściciele i masterzy)\n"
                 ".unsilence - Usuń tryb moderowany z kanału (właściciele i masterzy)\n"
-                ".op - Nadaj sobie status operatora (tylko właściciele)\n"
                 ".warn <nick> - Ostrzeż użytkownika (właściciele, masterzy i głosy)\n"
             )
             
