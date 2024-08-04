@@ -53,7 +53,7 @@ Aby uruchomić bota, wykonaj:
 python3 ptbot.py
 ``` 
 ### 5. Dostępne komendy
-
+```bash
 .add <nick> - Dodaj użytkownika do listy głosów
 .del <nick> - Usuń użytkownika z listy głosów
 .list - Pokaż listę użytkowników z głosem
@@ -68,6 +68,6 @@ python3 ptbot.py
 .unblock - Usuń tryb tylko dla zaproszonych i moderowany
 .silence - Wycisz kanał
 .unsilence - Wyłącz wyciszenie kanału
-
+```
 Współtworzenie
 Jeśli chcesz przyczynić się do rozwoju projektu, śmiało zgłaszaj problemy lub twórz pull requesty. Wszelkie kontrybucje są mile widziane!
