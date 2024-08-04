@@ -1,10 +1,13 @@
 import irc.bot
+import irc.connection
 import logging
 import sched
 import time
 import fnmatch
 from commands import CommandHandler
 import chardet
+import json
+import socket
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -15,22 +18,48 @@ def decode_irc(data):
     return data
 
 class OpBot(irc.bot.SingleServerIRCBot):
-    def __init__(self, channel, nickname, server, port=6667, owner_hostmasks=None):
-        if owner_hostmasks is None:
-            owner_hostmasks = ["*!*yooz@tahio.pl", "*!*kofany@irc.al"]
-        irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
-        self.channel = channel
-        self.owner_hostmasks = owner_hostmasks
+    def __init__(self, config_file='config.json'):
+        self.load_config(config_file)
+        
+        # Sprawdzenie, czy bind_ip jest adresem IPv6
+        if ':' in self.config['bind_ip']:
+            factory = irc.connection.Factory(bind_address=(self.config['bind_ip'], 0), ipv6=True)
+        else:
+            factory = irc.connection.Factory(bind_address=(self.config['bind_ip'], 0))
+
+        irc.bot.SingleServerIRCBot.__init__(self, 
+                                            [(self.config['server']['host'], self.config['server']['port'])], 
+                                            self.config['nickname'], 
+                                            self.config['nickname'],
+                                            connect_factory=factory)
+        
+        self.channels = {channel: irc.bot.Channel() for channel in self.config['channels']}
         self.scheduler = sched.scheduler(time.time, time.sleep)
         self.command_handler = CommandHandler(self)
+
+    def load_config(self, config_file):
+        with open(config_file, 'r') as f:
+            self.config = json.load(f)
 
     def on_nicknameinuse(self, c, e):
         logging.info("Nickname in use. Trying alternative nick.")
         c.nick(c.get_nickname() + "_")
 
     def on_welcome(self, c, e):
-        logging.info(f"Joined channel: {self.channel}")
-        c.join(self.channel)
+        self.join_channels(c)
+
+    def join_channels(self, c):
+        for channel in self.channels.keys():
+            logging.info(f"Joining channel: {channel}")
+            c.join(channel)
+
+    def on_disconnect(self, c, e):
+        logging.info("Disconnected. Attempting to reconnect...")
+        self.jump_server()
+
+    def on_connect(self, c, e):
+        logging.info("Connected to server. Joining channels...")
+        self.join_channels(c)
 
     def on_privmsg(self, c, e):
         if e.arguments[0].startswith('.'):
@@ -47,21 +76,25 @@ class OpBot(irc.bot.SingleServerIRCBot):
         self.command_handler.handle_whoisuser(c, e)
 
     def on_join(self, c, e):
-        self.command_handler.handle_join(c, e)
+        channel = e.target
+        nick = e.source.nick
+        if nick == c.get_nickname():
+            self.channels[channel].add_user(nick)
+        else:
+            self.command_handler.handle_join(c, e)
 
     def is_owner(self, source):
-        return any(fnmatch.fnmatch(source, hostmask) for hostmask in self.owner_hostmasks)
+        return any(fnmatch.fnmatch(source, hostmask) for hostmask in self.config['owners'])
 
 if __name__ == "__main__":
-    server = "94.125.182.253"
-    channel = "#tahioN"
-    nickname = "testbot"
-
     # Ustawienie dekodera dla buforów IRC
     irc.client.ServerConnection.buffer_class.encoding = 'utf-8'
     irc.client.ServerConnection.buffer_class.errors = 'replace'
     irc.client.ServerConnection.buffer_class.decode = staticmethod(decode_irc)
 
-    logging.info(f"Connecting to {server} as {nickname}")
-    bot = OpBot(channel, nickname, server)
+    # Włączenie obsługi IPv6
+    if socket.has_ipv6:
+        irc.client.inet_pton = socket.inet_pton
+
+    bot = OpBot()
     bot.start()
