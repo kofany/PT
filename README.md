@@ -1,77 +1,68 @@
-# Komendy Bota IRC
+# PTbot - Bot IRC z funkcjami moderacyjnymi
 
-Ten bot IRC oferuje różne komendy do zarządzania kanałem. Oto lista dostępnych komend i ich zastosowanie:
+PTbot to zaawansowany bot IRC napisany w Pythonie, zaprojektowany do pomocy w zarządzaniu kanałami IRC. Bot oferuje szereg funkcji moderacyjnych i administracyjnych, umożliwiając efektywne zarządzanie społecznością na kanałach IRC.
 
-## Lista komend
+## Główne funkcje
 
-### `.add <nick>`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Dodaje użytkownika do listy głosów. Bot wykonuje WHOIS na podanym nicku, aby uzyskać pełny hostmask, dodaje go do listy głosów i nadaje mu status voice (+v) na kanale.
+- Zarządzanie użytkownikami (dodawanie/usuwanie głosów i masterów)
+- Moderacja kanału (ban, kick, ostrzeżenia)
+- Zmiana ustawień kanału (temat, tryby)
+- System ostrzeżeń z automatycznym banem
+- Obsługa wielu kanałów
+- Wsparcie dla IPv4 i IPv6
+- Automatyczne ponowne połączenie i dołączanie do kanałów
 
-### `.del <nick>`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Usuwa użytkownika z listy głosów. Jeśli użytkownik jest właścicielem, komenda jest ignorowana.
+## Wymagania
 
-### `.list`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Wyświetla listę wszystkich użytkowników z głosem.
+- Python 3.6+
+- irc
+- chardet
 
-### `.ban <nick>`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Banuje użytkownika na kanale. Bot wykonuje WHOIS na podanym nicku, aby uzyskać hostmask, a następnie nakłada bana na *!*@host.
+## Instalacja
 
-### `.unban <maska>`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Zdejmuje bana o podanej masce z kanału.
+1. Sklonuj repozytorium:
+git clone https://github.com/kofany/PT.git
+cd PT
+Copy
+2. Zainstaluj wymagane zależności:
+pip install irc chardet
+Copy
+3. Skonfiguruj bota, edytując plik `config.json`:
 
-### `.voice <nick>`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Nadaje status voice (+v) użytkownikowi na kanale.
+{
+    "server": {
+        "host": "irc.twoj-serwer.com",
+        "port": 6667
+    },
+    "bind_ip": "0.0.0.0",
+    "nickname": "OpBot",
+    "channels": ["#kanal1", "#kanal2"],
+    "owners": ["*!*owner@example.com"],
+    "voices_file": "voices.json",
+    "masters_file": "masters.json",
+    "warns_file": "warns.json"
+}
 
-### `.devoice <nick>`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Odbiera status voice (-v) użytkownikowi na kanale. Jeśli użytkownik jest właścicielem, komenda jest ignorowana.
 
-### `.kick <nick>`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Wyrzuca użytkownika z kanału. Bot wykonuje WHOIS na podanym nicku, aby upewnić się, że nie jest to chroniony użytkownik.
+Uruchomienie
+Aby uruchomić bota, wykonaj:
+python3 ptbot.py
+Dostępne komendy
 
-### `.topic <tekst>`
-- **Kto może używać**: Właściciele, masterzy i użytkownicy z głosem
-- **Działanie**: Ustawia nowy temat kanału.
+.add <nick> - Dodaj użytkownika do listy głosów
+.del <nick> - Usuń użytkownika z listy głosów
+.list - Pokaż listę użytkowników z głosem
+.addm <nick> - Dodaj użytkownika do listy masterów
+.delm <nick> - Usuń użytkownika z listy masterów
+.ban <nick> - Zbanuj użytkownika
+.unban <maska> - Odbanuj użytkownika
+.kick <nick> - Wyrzuć użytkownika z kanału
+.warn <nick> - Ostrzeż użytkownika
+.topic <tekst> - Ustaw temat kanału
+.block - Ustaw kanał na tryb tylko dla zaproszonych i moderowany
+.unblock - Usuń tryb tylko dla zaproszonych i moderowany
+.silence - Wycisz kanał
+.unsilence - Wyłącz wyciszenie kanału
 
-### `.block`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Ustawia kanał w tryb tylko na zaproszenie (+i) i moderowany (+m).
-
-### `.unblock`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Usuwa tryb tylko na zaproszenie (-i) i moderowany (-m) z kanału.
-
-### `.silence`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Ustawia kanał w tryb moderowany (+m).
-
-### `.unsilence`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Usuwa tryb moderowany (-m) z kanału.
-
-### `.help`
-- **Kto może używać**: Właściciele i masterzy
-- **Działanie**: Wyświetla listę dostępnych komend wraz z krótkim opisem.
-
-### `.warn <nick>`
-- **Kto może używać**: Właściciele, masterzy i użytkownicy z głosem
-- **Działanie**: Ostrzega użytkownika. Oto szczegółowy opis mechanizmu:
-  1. Bot sprawdza, czy użytkownik wydający komendę ma odpowiednie uprawnienia.
-  2. Wykonuje WHOIS na podanym nicku, aby uzyskać pełny hostmask użytkownika.
-  3. Sprawdza, czy ostrzegany użytkownik nie jest chroniony (właściciel lub master).
-  4. Jeśli użytkownik nie jest chroniony, bot sprawdza, czy istnieje już ostrzeżenie dla tego hostmaska:
-     - Jeśli nie ma wcześniejszego ostrzeżenia, bot zapisuje nowe ostrzeżenie z aktualnym czasem i informacją o tym, kto je wydał.
-     - Jeśli istnieje wcześniejsze ostrzeżenie, bot sprawdza, czy minęło więcej niż 15 minut od poprzedniego ostrzeżenia:
-       * Jeśli minęło mniej niż 15 minut, bot aktualizuje istniejące ostrzeżenie z nowym czasem i informacją o tym, kto je wydał.
-       * Jeśli minęło więcej niż 15 minut, bot nakłada bana na *!*@host użytkownika, wyrzuca go z kanału i usuwa ostrzeżenie z listy.
-  5. Bot zapisuje aktualny stan ostrzeżeń do pliku warns.txt.
-  6. Bot informuje kanał o wydaniu ostrzeżenia lub o nałożeniu bana, w zależności od sytuacji.
-
-Ostrzeżenia są przechowywane w pamięci bota oraz zapisywane do pliku, co pozwala na ich utrzymanie nawet po restarcie bota. Mechanizm ten zapewnia stopniowanie konsekwencji dla użytkowników naruszających zasady kanału, dając im szansę na poprawę przed nałożeniem bana.
+Współtworzenie
+Jeśli chcesz przyczynić się do rozwoju projektu, śmiało zgłaszaj problemy lub twórz pull requesty. Wszelkie kontrybucje są mile widziane!
