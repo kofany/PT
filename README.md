@@ -20,17 +20,17 @@ PTbot to zaawansowany bot IRC napisany w Pythonie, zaprojektowany do pomocy w za
 
 ## Instalacja
 
-1. Sklonuj repozytorium:
+### 1. Sklonuj repozytorium:
 
 ```bash
 git clone https://github.com/kofany/PT.git
 cd PT
 ```
-2. Zainstaluj wymagane zależności:
+### 2. Zainstaluj wymagane zależności:
 ```bash
 pip install irc chardet
 ```
-3. Skonfiguruj bota, edytując plik `config.json`:
+### 3. Skonfiguruj bota, edytując plik `config.json`:
 ```json
 {
     "server": {
@@ -47,12 +47,12 @@ pip install irc chardet
 }
 ```
 
-Uruchomienie
+### 4. Uruchomienie
 Aby uruchomić bota, wykonaj:
 ```bash
 python3 ptbot.py
 ``` 
-Dostępne komendy
+### 5. Dostępne komendy
 
 .add <nick> - Dodaj użytkownika do listy głosów
 .del <nick> - Usuń użytkownika z listy głosów
