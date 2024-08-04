@@ -1,78 +1,73 @@
-# IRC Bot Commands
+# PTbot - IRC Bot with Moderation Features
 
-This IRC bot provides various channel management commands. Here's a list of available commands and their usage:
+PTbot is an advanced IRC bot written in Python, designed to assist in managing IRC channels. The bot offers a range of moderation and administrative features, allowing for effective management of the community on IRC channels.
 
-## Command List
+## Main Features
 
-### `.add <nick>`
-- **Who can use**: Owners and masters
-- **Action**: Adds a user to the voice list. The bot performs a WHOIS on the given nick to obtain the full hostmask, adds them to the voice list, and gives them voice (+v) status on the channel.
+- User management (adding/removing voices and masters)
+- Channel moderation (ban, kick, warnings)
+- Changing channel settings (topic, modes)
+- Warning system with automatic bans
+- Support for multiple channels
+- IPv4 and IPv6 support
+- Automatic reconnection and rejoining channels
 
-### `.del <nick>`
-- **Who can use**: Owners and masters
-- **Action**: Removes a user from the voice list. If the user is an owner, the command is ignored.
+## Requirements
 
-### `.list`
-- **Who can use**: Owners and masters
-- **Action**: Displays a list of all voiced users.
+- Python 3.6+
+- irc
+- chardet
 
-### `.ban <nick>`
-- **Who can use**: Owners and masters
-- **Action**: Bans a user from the channel. The bot performs a WHOIS on the given nick to obtain the hostmask and then applies a ban on *!*@host.
+## Installation
 
-### `.unban <mask>`
-- **Who can use**: Owners and masters
-- **Action**: Removes a ban with the specified mask from the channel.
+### 1. Clone the repository:
 
-### `.voice <nick>`
-- **Who can use**: Owners and masters
-- **Action**: Gives voice (+v) status to a user on the channel.
+```bash
+git clone https://github.com/kofany/PT.git
+cd PT
+```
+### 2. Install required dependencies:
+```bash
+pip install irc chardet
+```
+### 3. Configure the bot by editing the config.json file:
+```json
+{
+    "server": {
+        "host": "irc.your-server.com",
+        "port": 6667
+    },
+    "bind_ip": "0.0.0.0",
+    "nickname": "OpBot",
+    "channels": ["#channel1", "#channel2"],
+    "owners": ["*!*owner@example.com"],
+    "voices_file": "voices.json",
+    "masters_file": "masters.json",
+    "warns_file": "warns.json"
+}
+```
+### 4. Running
+To start the bot, execute:
 
-### `.devoice <nick>`
-- **Who can use**: Owners and masters
-- **Action**: Removes voice (-v) status from a user on the channel. If the user is an owner, the command is ignored.
+```bash
+python3 ptbot.py
+```
+### 5. Available Commands
+.add <nick> - Add a user to the voice list
+.del <nick> - Remove a user from the voice list
+.list - Show the list of voiced users
+.addm <nick> - Add a user to the master list
+.delm <nick> - Remove a user from the master list
+.ban <nick> - Ban a user
+.unban <mask> - Unban a user
+.kick <nick> - Kick a user from the channel
+.warn <nick> - Warn a user
+.topic <text> - Set the channel topic
+.block - Set the channel to invite-only and moderated mode
+.unblock - Remove invite-only and moderated mode
+.silence - Silence the channel
+.unsilence - Remove channel silence
+Contributing
 
-### `.kick <nick>`
-- **Who can use**: Owners and masters
-- **Action**: Kicks a user from the channel. The bot performs a WHOIS on the given nick to ensure it's not a protected user.
-
-### `.topic <text>`
-- **Who can use**: Owners, masters, and voiced users
-- **Action**: Sets a new channel topic.
-
-### `.block`
-- **Who can use**: Owners and masters
-- **Action**: Sets the channel to invite-only (+i) and moderated (+m) mode.
-
-### `.unblock`
-- **Who can use**: Owners and masters
-- **Action**: Removes invite-only (-i) and moderated (-m) mode from the channel.
-
-### `.silence`
-- **Who can use**: Owners and masters
-- **Action**: Sets the channel to moderated (+m) mode.
-
-### `.unsilence`
-- **Who can use**: Owners and masters
-- **Action**: Removes moderated (-m) mode from the channel.
-
-### `.help`
-- **Who can use**: Owners and masters
-- **Action**: Displays a list of available commands with a brief description.
-
-### `.warn <nick>`
-- **Who can use**: Owners, masters, and voiced users
-- **Action**: Warns a user. Here's a detailed description of the mechanism:
-  1. The bot checks if the user issuing the command has the appropriate permissions.
-  2. It performs a WHOIS on the given nick to obtain the full hostmask of the user.
-  3. It checks if the warned user is not protected (owner or master).
-  4. If the user is not protected, the bot checks if there's already a warning for this hostmask:
-     - If there's no previous warning, the bot records a new warning with the current time and information about who issued it.
-     - If there's a previous warning, the bot checks if more than 15 minutes have passed since the previous warning:
-       * If less than 15 minutes have passed, the bot updates the existing warning with the new time and information about who issued it.
-       * If more than 15 minutes have passed, the bot applies a ban on the user's *!*@host, kicks them from the channel, and removes the warning from the list.
-  5. The bot saves the current state of warnings to the warns.txt file.
-  6. The bot informs the channel about the warning issued or the ban applied, depending on the situation.
-
-Warnings are stored in the bot's memory and saved to a file, allowing them to be maintained even after the bot restarts. This mechanism provides a gradual escalation of consequences for users violating channel rules, giving them a chance to improve before a ban is applied.
+If you want to contribute to the project, feel free to report issues or create pull requests. All contributions are welcome!
 
