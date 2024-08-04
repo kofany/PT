@@ -1,0 +1,13 @@
+{
+    "server": {
+        "host": "irc.example.com",
+        "port": 6667
+    },
+    "bind_ip": "2a03:94f3:ffff::1",
+    "nickname": "testbot",
+    "channels": ["#channel1", "#channel2"],
+    "owners": ["*!*user@example.com"],
+    "voices_file": "voices.json",
+    "masters_file": "masters.json",
+    "warns_file": "warns.json"
+}
