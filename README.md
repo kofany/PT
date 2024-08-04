@@ -53,7 +53,7 @@ Aby uruchomić bota, wykonaj:
 python3 ptbot.py
 ``` 
 ### 5. Dostępne komendy
-```bash
+```code
 .add <nick> - Dodaj użytkownika do listy głosów
 .del <nick> - Usuń użytkownika z listy głosów
 .list - Pokaż listę użytkowników z głosem
