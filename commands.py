@@ -29,7 +29,7 @@ class CommandHandler:
         source = e.source
         c = self.bot.connection
         nick = e.source.nick
-        channel = e.target
+        channel = e.target.lower()
         is_owner = self.bot.is_owner(str(source))
         is_master = self.is_master(nick, channel)
         is_voice = self.is_voice(nick, channel)
@@ -145,11 +145,22 @@ class CommandHandler:
     def devoice_user(self, c, nick, args, channel, is_owner, is_master, is_voice):
         if is_owner or is_master:
             devoice_nick = args.strip()
-            if self.is_owner_hostmask(self.get_hostmask(devoice_nick, channel)):
+            
+            # Sprawdzamy, czy target jest właścicielem
+            hostmask = self.get_hostmask(devoice_nick, channel)
+            if hostmask and self.is_owner_hostmask(hostmask):
                 c.privmsg(channel, f"{nick}, nie możesz odebrać głosu {devoice_nick}, ponieważ jest to właściciel.")
-            else:
-                c.mode(channel, f"-v {devoice_nick}")
-
+                return
+            
+            # Sprawdzamy, czy target jest masterem
+            if self.is_master(devoice_nick, channel):
+                c.privmsg(channel, f"{nick}, nie możesz odebrać głosu {devoice_nick}, ponieważ jest to master.")
+                return
+            
+            # Jeśli target nie jest ani właścicielem, ani masterem, odbieramy głos
+            c.mode(channel, f"-v {devoice_nick}")
+            c.privmsg(channel, f"Odebrano głos użytkownikowi {devoice_nick}.")
+            
     def kick_user(self, c, nick, args, channel, is_owner, is_master, is_voice):
         if is_owner or is_master:
             self.current_command = ".kick"
@@ -329,7 +340,7 @@ class CommandHandler:
 
     def handle_join(self, c, e):
         nick = e.source.nick
-        channel = e.target
+        channel = e.target.lower()
         if channel in self.voices:
             for stored_nick, hostmask in self.voices[channel].items():
                 if fnmatch.fnmatch(str(e.source), hostmask):
