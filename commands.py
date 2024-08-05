@@ -219,8 +219,11 @@ class CommandHandler:
 
     def reop_owners(self, c, nick, args, channel, is_owner, is_master, is_voice):
         if is_owner:
-            for owner_hostmask in self.bot.config['owners']:
-                c.mode(channel, f"+R {owner_hostmask}")
+            owners = self.bot.config['owners']
+            for i in range(0, len(owners), 3):
+                chunk = owners[i:i+3]
+                masks = ' '.join(chunk)
+                c.mode(channel, f"+{'R' * len(chunk)} {masks}")
 
     def show_help(self, c, nick, args, channel, is_owner, is_master, is_voice):
         if is_owner or is_master:
