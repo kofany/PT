@@ -48,6 +48,7 @@ class CommandHandler:
             ".unban": self.unban_user,
             ".voice": self.voice_user,
             ".bm": self.ban_mask,
+            ".reop": self.reop_owners,
             ".devoice": self.devoice_user,
             ".kick": self.kick_user,
             ".topic": self.set_topic,
@@ -62,7 +63,9 @@ class CommandHandler:
         }
 
         if command in command_map:
-            if command in [".topic", ".warn"]:
+            if command == ".op":
+                command_map[command](c, nick, args, channel, is_owner, is_master, is_voice)
+            elif command in [".topic", ".warn"]:
                 if is_owner or is_master or is_voice:
                     command_map[command](c, nick, args, channel, is_owner, is_master, is_voice)
                 else:
@@ -209,7 +212,15 @@ class CommandHandler:
 
     def op_user(self, c, nick, args, channel, is_owner, is_master, is_voice):
         if is_owner:
-            c.mode(channel, f"+o {nick}")
+            self.current_command = ".op"
+            self.current_channel = channel
+            self.target_nick = nick
+            c.whois([nick])
+
+    def reop_owners(self, c, nick, args, channel, is_owner, is_master, is_voice):
+        if is_owner:
+            for owner_hostmask in self.bot.config['owners']:
+                c.mode(channel, f"+R {owner_hostmask}")
 
     def show_help(self, c, nick, args, channel, is_owner, is_master, is_voice):
         if is_owner or is_master:
@@ -263,7 +274,12 @@ class CommandHandler:
         if nick != self.target_nick:
             return  # Ignoruj odpowiedzi whois dla innych nicków
 
-        if self.current_command == ".ban":
+        if self.current_command == ".op":
+            if self.is_owner_hostmask(full_hostmask):
+                if ".hu" not in full_hostmask:
+                    c.mode(channel, f"+o {nick}")
+
+        elif self.current_command == ".ban":
             if self.is_owner_hostmask(full_hostmask):
                 c.privmsg(channel, f"Nie można zbanować {nick}, ponieważ jest to właściciel.")
             elif self.is_protected(full_hostmask, channel):
