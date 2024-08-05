@@ -17,7 +17,19 @@ def decode_irc(data):
         return data.decode(result['encoding'], errors='replace')
     return data
 
-class OpBot(irc.bot.SingleServerIRCBot):
+class CaseInsensitiveSingleServerIRCBot(irc.bot.SingleServerIRCBot):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.channels = irc.bot.IRCDict()
+
+    def on_join(self, c, e):
+        ch = e.target.lower()
+        nick = e.source.nick
+        if ch not in self.channels:
+            self.channels[ch] = irc.bot.Channel()
+        self.channels[ch].add_user(nick)
+
+class OpBot(CaseInsensitiveSingleServerIRCBot):
     def __init__(self, config_file='config.json'):
         self.load_config(config_file)
         
@@ -27,13 +39,12 @@ class OpBot(irc.bot.SingleServerIRCBot):
         else:
             factory = irc.connection.Factory(bind_address=(self.config['bind_ip'], 0))
 
-        irc.bot.SingleServerIRCBot.__init__(self, 
+        CaseInsensitiveSingleServerIRCBot.__init__(self, 
                                             [(self.config['server']['host'], self.config['server']['port'])], 
                                             self.config['nickname'], 
                                             self.config['nickname'],
                                             connect_factory=factory)
         
-        self.channels = {channel: irc.bot.Channel() for channel in self.config['channels']}
         self.scheduler = sched.scheduler(time.time, time.sleep)
         self.command_handler = CommandHandler(self)
 
@@ -49,9 +60,10 @@ class OpBot(irc.bot.SingleServerIRCBot):
         self.join_channels(c)
 
     def join_channels(self, c):
-        for channel in self.channels.keys():
+        for channel in self.config['channels']:
             logging.info(f"Joining channel: {channel}")
             c.join(channel)
+            self.channels[channel.lower()] = irc.bot.Channel()
 
     def on_disconnect(self, c, e):
         logging.info("Disconnected. Attempting to reconnect...")
@@ -76,11 +88,10 @@ class OpBot(irc.bot.SingleServerIRCBot):
         self.command_handler.handle_whoisuser(c, e)
 
     def on_join(self, c, e):
-        channel = e.target
+        super().on_join(c, e)
+        channel = e.target.lower()
         nick = e.source.nick
-        if nick == c.get_nickname():
-            self.channels[channel].add_user(nick)
-        else:
+        if nick != c.get_nickname():
             self.command_handler.handle_join(c, e)
 
     def is_owner(self, source):
