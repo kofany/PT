@@ -47,6 +47,7 @@ class CommandHandler:
             ".ban": self.ban_user,
             ".unban": self.unban_user,
             ".voice": self.voice_user,
+            ".bm": self.ban_mask,
             ".devoice": self.devoice_user,
             ".kick": self.kick_user,
             ".topic": self.set_topic,
@@ -142,6 +143,11 @@ class CommandHandler:
             voice_nick = args.strip()
             c.mode(channel, f"+v {voice_nick}")
 
+    def ban_mask(self, c, nick, args, channel, is_owner, is_master, is_voice):
+        if is_owner or is_master:
+            banmask = args.strip()
+            c.mode(channel, f"+b {banmask}")
+
     def devoice_user(self, c, nick, args, channel, is_owner, is_master, is_voice):
         if is_owner or is_master:
             devoice_nick = args.strip()
@@ -160,7 +166,7 @@ class CommandHandler:
             # Jeśli target nie jest ani właścicielem, ani masterem, odbieramy głos
             c.mode(channel, f"-v {devoice_nick}")
             c.privmsg(channel, f"Odebrano głos użytkownikowi {devoice_nick}.")
-            
+
     def kick_user(self, c, nick, args, channel, is_owner, is_master, is_voice):
         if is_owner or is_master:
             self.current_command = ".kick"
@@ -215,6 +221,7 @@ class CommandHandler:
                 ".addm <nick> - Dodaj użytkownika do listy masterów (tylko właściciele)\n"
                 ".delm <nick> - Usuń użytkownika z listy masterów (tylko właściciele)\n"
                 ".ban <nick> - Zbanuj użytkownika na kanale (właściciele i masterzy)\n"
+                ".bm <mask> - Ban po masce (właściciele, masterzy)\n"
                 ".unban <maska> - Odbanuj użytkownika na kanale (właściciele i masterzy)\n"
                 ".voice <nick> - Daj głos użytkownikowi na kanale (właściciele i masterzy)\n"
                 ".devoice <nick> - Odbierz głos użytkownikowi na kanale (właściciele i masterzy)\n"
